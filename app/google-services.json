@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "759902692790",
+    "project_id": "spotyclone-5c5d3",
+    "storage_bucket": "spotyclone-5c5d3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:759902692790:android:6f6ee381c2fd0be31b4d17",
+        "android_client_info": {
+          "package_name": "com.example.spotyclone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl5di5cVvS_8TN27CZJ7A6jM6tu8bCKfI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
