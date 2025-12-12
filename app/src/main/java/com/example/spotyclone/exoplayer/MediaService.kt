@@ -36,8 +36,7 @@ class MusicService : MediaLibraryService() {
     @Inject
     lateinit var exoPlayer: ExoPlayer
 
-    @Inject
-    lateinit var musicStorage: Storage
+
 
     @Inject
     lateinit var musicRepository: MusicRepository
@@ -105,6 +104,12 @@ class MusicService : MediaLibraryService() {
                     pageSize: Int,
                     params: MediaLibraryService.LibraryParams?
                 ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+                    if (parentId != "root") {
+                        return Futures.immediateFuture(
+                            LibraryResult.ofItemList(ImmutableList.of(), params)
+                        )
+                    }
+
                     return Futures.immediateFuture(
                         LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                     )
