@@ -1,19 +1,17 @@
 package com.example.spotyclone.service
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.annotation.OptIn
-import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.*
+import androidx.media3.session.DefaultMediaNotificationProvider
+import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaSession
 import com.example.spotyclone.MainActivity
 import com.example.spotyclone.exoplayer.MusicControllerHolder
 import com.example.spotyclone.repository.MusicRepository
@@ -21,8 +19,12 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
-import io.appwrite.services.Storage
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -47,9 +49,12 @@ class MusicService : MediaLibraryService() {
     override fun onCreate() {
         super.onCreate()
 
-        startForeground(1, createForegroundNotification())
-        // Создаём сессию сразу с пустым списком
-        createLibrarySession(emptyList())
+
+
+        createLibrarySession()
+
+
+
 
         serviceScope.launch {
             val songs = musicRepository.getMusicList()
@@ -73,8 +78,9 @@ class MusicService : MediaLibraryService() {
 
 
             withContext(Dispatchers.Main) {
+                exoPlayer.playWhenReady = false
                 exoPlayer.setMediaItems(mediaItems)
-                exoPlayer.prepare()
+
                 librarySession.notifyChildrenChanged(
                     "root",
                     mediaItems.size,
@@ -85,7 +91,7 @@ class MusicService : MediaLibraryService() {
     }
 
     @OptIn(UnstableApi::class)
-    private fun createLibrarySession(initialItems: List<MediaItem>) {
+    private fun createLibrarySession() {
         val mainIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, MainActivity::class.java),
@@ -122,24 +128,8 @@ class MusicService : MediaLibraryService() {
         setMediaNotificationProvider(DefaultMediaNotificationProvider(this))
     }
 
-    private fun createForegroundNotification(): Notification {
-        val channelId = "music_service"
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Music Service",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
-        }
 
-        return NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Загрузка музыки…")
-            .setSmallIcon(android.R.drawable.ic_media_play)
-            .build()
-    }
 
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? =
