@@ -14,6 +14,8 @@ firebaseFirestore = "26.0.2"
 hilt-version = "2.51.1"
 media3SessionVersion = "1.8.0"
 
+room = "2.6.1"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -36,13 +38,14 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", v
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3SessionVersion" }
 
-
+# Room библиотеки
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
-
-
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt-version" }
