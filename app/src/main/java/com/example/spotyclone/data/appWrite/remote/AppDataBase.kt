@@ -1,13 +1,13 @@
-package com.example.spotyclone.data.remote
+package com.example.spotyclone.data.appWrite.remote
 
 import android.content.Context
 import android.util.Log
-import com.example.spotyclone.data.entities.Song
-import com.example.spotyclone.data.entities.toSong
+import com.example.spotyclone.data.appWrite.entities.Song
+import com.example.spotyclone.data.appWrite.entities.toSong
 import io.appwrite.Client
 import io.appwrite.services.Databases
 
-class DataBase(context: Context) {
+class AppDataBase(context: Context) {
 
     private val client : Client = Client(context)
         .setEndpoint("https://fra.cloud.appwrite.io/v1")
