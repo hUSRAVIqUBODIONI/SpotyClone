@@ -8,8 +8,8 @@ import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import com.example.spotyclone.data.remote.DataBase
-import com.example.spotyclone.repository.MusicRepository
+import com.example.spotyclone.data.appWrite.remote.AppDataBase
+import com.example.spotyclone.data.appWrite.repository.MusicRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,15 +37,15 @@ object ServiceModule {
     @ServiceScoped
     fun provideDataBase(
         @ApplicationContext context: Context
-    ) : DataBase{
-        return DataBase(context)
+    ) : AppDataBase{
+        return AppDataBase(context)
     }
 
     @Provides
     @ServiceScoped
     fun provideMusicRepository(
-        dataBase: DataBase
-    ) : MusicRepository = MusicRepository(dataBase)
+        appDataBase: AppDataBase
+    ) : MusicRepository = MusicRepository(appDataBase)
 
 
 

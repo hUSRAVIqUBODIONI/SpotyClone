@@ -1,4 +1,4 @@
-package com.example.spotyclone.data.entities
+package com.example.spotyclone.data.appWrite.entities
 
 
 data class Song(
