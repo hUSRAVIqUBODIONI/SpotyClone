@@ -14,7 +14,7 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import com.example.spotyclone.MainActivity
 import com.example.spotyclone.exoplayer.MusicControllerHolder
-import com.example.spotyclone.repository.MusicRepository
+import com.example.spotyclone.data.appWrite.repository.MusicRepository
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
