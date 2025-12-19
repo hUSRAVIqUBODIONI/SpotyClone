@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.MediaItem
 import com.example.spotyclone.states.MusicListActions
 import com.example.spotyclone.states.MusicListActions.onClick
@@ -31,7 +32,9 @@ import com.example.spotyclone.viewmodel.MusicViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MusicScreenRoot(viewModel: MusicViewModel,windowPadding : PaddingValues) {
+fun MusicScreenRoot(
+    windowPadding : PaddingValues,
+    viewModel: MusicViewModel = hiltViewModel(),) {
     val songs by viewModel.songs.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     val snackbar = remember { SnackbarHostState() }

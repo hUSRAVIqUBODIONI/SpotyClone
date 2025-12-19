@@ -12,11 +12,13 @@ import com.example.spotyclone.service.MusicService
 import com.example.spotyclone.ui.screens.MusicScreenRoot
 import com.example.spotyclone.ui.theme.SpotyCloneTheme
 import com.example.spotyclone.viewmodel.MusicViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: MusicViewModel by viewModels()
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +32,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             SpotyCloneTheme {
                 Scaffold(contentWindowInsets = WindowInsets.safeDrawing) { padding ->
-                    MusicScreenRoot(viewModel,padding)
+                    MusicScreenRoot(padding)
                 }
             }
         }
