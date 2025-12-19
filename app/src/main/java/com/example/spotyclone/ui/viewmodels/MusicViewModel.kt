@@ -1,19 +1,33 @@
 package com.example.spotyclone.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import com.example.spotyclone.data.db.entities.SongEntity
+import com.example.spotyclone.data.db.repository.RoomRepository
 import com.example.spotyclone.exoplayer.MediaBrowserController
 import com.example.spotyclone.exoplayer.MusicControllerHolder
 import com.example.spotyclone.states.MusicListActions
 import com.example.spotyclone.states.PlayerState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
+import java.io.File
+import javax.inject.Inject
 
-class MusicViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class MusicViewModel @Inject constructor(
+    application: Application,
+    repository: RoomRepository
+) : AndroidViewModel(application) {
 
     private val appContext = application.applicationContext
 
@@ -25,6 +39,11 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     private val mediaBrowserController = MediaBrowserController(appContext)
 
+    val room_songs = repository.songs.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        emptyList()
+    )
 
 
     private val controllerCallback = object : Player.Listener {
@@ -57,7 +76,18 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             _playerState.value = _playerState.value.copy(
                 message = "hello"
             )
+
+            Log.d("TestRoom",room_songs.toString())
+
         }
+
+
+
+
+
+
+
+
     }
 
     fun onEvent(actions: MusicListActions){
