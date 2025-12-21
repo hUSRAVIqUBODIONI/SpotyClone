@@ -3,6 +3,7 @@ package com.example.spotyclone.viewmodel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -26,8 +27,11 @@ import javax.inject.Inject
 @HiltViewModel
 class MusicViewModel @Inject constructor(
     application: Application,
-    repository: RoomRepository
+    repository: RoomRepository,
+    savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(application) {
+
+    val param: String = savedStateHandle.get<String>("param") ?: "default"
 
     private val appContext = application.applicationContext
 
@@ -64,20 +68,21 @@ class MusicViewModel @Inject constructor(
     }
 
     init {
+        Log.d("MusicService",param + " Here ")
         viewModelScope.launch {
             mediaBrowserController.init()
 
             // Подключаемся к существующим объектам
 
             MusicControllerHolder.mediaController?.addListener(controllerCallback)
-            _songs.value = mediaBrowserController.fetchData("root")
+            _songs.value = mediaBrowserController.fetchData(param)
 
 
             _playerState.value = _playerState.value.copy(
                 message = "hello"
             )
 
-            Log.d("TestRoom",room_songs.toString())
+
 
         }
 
