@@ -15,6 +15,7 @@ import androidx.media3.session.MediaSession
 import com.example.spotyclone.MainActivity
 import com.example.spotyclone.exoplayer.MusicControllerHolder
 import com.example.spotyclone.data.appWrite.repository.MusicRepository
+import com.example.spotyclone.data.db.repository.RoomRepository
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -23,6 +24,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -38,12 +41,16 @@ class MusicService : MediaLibraryService() {
     @Inject
     lateinit var exoPlayer: ExoPlayer
 
+    @Inject
+    lateinit var  roomRepository: RoomRepository
 
 
     @Inject
     lateinit var musicRepository: MusicRepository
 
     private var mediaItems: List<MediaItem> = emptyList()
+
+    private var roomMediaItems: List<MediaItem> = emptyList()
 
     @OptIn(UnstableApi::class)
     override fun onCreate() {
@@ -77,13 +84,40 @@ class MusicService : MediaLibraryService() {
             }
 
 
+            val room_songs = roomRepository.getAllSongsOnce()
+            Log.d("TestRoom", room_songs.toString())
+
+
+
+            roomMediaItems = room_songs.map { song ->
+                MediaItem.Builder()
+                    .setUri(song.url)
+                    .setMediaId(song.id.toString())
+                    .setMediaMetadata(
+                        MediaMetadata.Builder()
+                            .setTitle(song.title)
+                            .setArtist(song.artist)
+                            .setIsBrowsable(false)
+                            .setIsPlayable(true)
+                            .build()
+                    )
+                    .build()
+            }
+
+
             withContext(Dispatchers.Main) {
                 exoPlayer.playWhenReady = false
-                exoPlayer.setMediaItems(mediaItems)
+
+
 
                 librarySession.notifyChildrenChanged(
                     "root",
                     mediaItems.size,
+                    null
+                )
+                librarySession.notifyChildrenChanged(
+                    "room",
+                    roomMediaItems.size,
                     null
                 )
             }
@@ -110,15 +144,26 @@ class MusicService : MediaLibraryService() {
                     pageSize: Int,
                     params: MediaLibraryService.LibraryParams?
                 ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-                    if (parentId != "root") {
-                        return Futures.immediateFuture(
-                            LibraryResult.ofItemList(ImmutableList.of(), params)
-                        )
-                    }
 
-                    return Futures.immediateFuture(
-                        LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
-                    )
+                    when(parentId){
+                        "root" ->{
+                            exoPlayer.setMediaItems(mediaItems)
+                            return Futures.immediateFuture(
+                                LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
+                            )
+                        }
+                        "room" ->{
+                            exoPlayer.setMediaItems(roomMediaItems)
+                            return Futures.immediateFuture(
+                                LibraryResult.ofItemList(ImmutableList.copyOf(roomMediaItems), params)
+                            )
+                        }
+                        else->{
+                            return Futures.immediateFuture(
+                                LibraryResult.ofItemList(ImmutableList.of(), params)
+                            )
+                        }
+                    }
                 }
             }
         )

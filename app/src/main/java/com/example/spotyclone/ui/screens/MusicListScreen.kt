@@ -33,7 +33,6 @@ import com.example.spotyclone.viewmodel.MusicViewModel
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MusicScreenRoot(
-    windowPadding : PaddingValues,
     viewModel: MusicViewModel = hiltViewModel(),) {
     val songs by viewModel.songs.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
@@ -51,7 +50,6 @@ fun MusicScreenRoot(
         MusicScreen(
             songs = songs,
             playerState = playerState,
-            windowPadding = windowPadding,
             action = {viewModel.onEvent(it)}
            )
     }
@@ -61,13 +59,12 @@ fun MusicScreenRoot(
 @Composable
 fun MusicScreen(songs: List<MediaItem>,
                 playerState: PlayerState,
-                windowPadding : PaddingValues,
                 action:(MusicListActions) -> Unit){
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
-                .padding(windowPadding)
+
         ) {
             itemsIndexed(songs) { index, song ->
                 Text(

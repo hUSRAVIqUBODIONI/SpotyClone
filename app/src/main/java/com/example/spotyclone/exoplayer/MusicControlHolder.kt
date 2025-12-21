@@ -7,5 +7,4 @@ object MusicControllerHolder {
     var mediaController: MediaController? = null
     var mediaBrowser: MediaBrowser? = null
 
-
 }

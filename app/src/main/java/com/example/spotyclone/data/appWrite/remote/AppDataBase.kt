@@ -29,7 +29,7 @@ class AppDataBase(context: Context) {
                     it.data.toSong()
                 }
         }catch (e: Exception) {
-            Log.e("MyTag", "Error loading songs", e)
+            Log.e("MyTag", "Error loading songs $e", e)
             emptyList()
         }
 

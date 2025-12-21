@@ -26,6 +26,7 @@ class MediaBrowserController(val appContext: Context) {
     }
 
     suspend fun fetchData(parentID: String): List<MediaItem> {
+
         val mb = MusicControllerHolder.mediaBrowser ?: return emptyList()
 
         val result = mb.getChildren(parentID, 0, 100, null).await()
@@ -35,5 +36,7 @@ class MediaBrowserController(val appContext: Context) {
         } else {
             emptyList()
         }
+
+
     }
 }
