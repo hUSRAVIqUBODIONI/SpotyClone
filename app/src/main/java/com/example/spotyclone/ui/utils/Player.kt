@@ -1,6 +1,6 @@
 package com.example.spotyclone.ui.utils
 
-import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,7 +38,12 @@ fun Player(
     playerState : PlayerState,
     action: (MusicListActions) -> Unit
 ){
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(modifier = modifier
+        .fillMaxWidth()
+        .clickable(onClick = {
+            action(MusicListActions.onNavigate)
+        })
+    ) {
 
         Column(
             modifier = Modifier
