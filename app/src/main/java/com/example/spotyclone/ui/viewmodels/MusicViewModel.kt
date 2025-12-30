@@ -1,34 +1,30 @@
 package com.example.spotyclone.viewmodel
 
 import android.app.Application
+import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import com.example.spotyclone.data.db.entities.SongEntity
+import androidx.media3.session.SessionCommand
 import com.example.spotyclone.data.db.repository.RoomRepository
 import com.example.spotyclone.exoplayer.MediaBrowserController
 import com.example.spotyclone.exoplayer.MusicControllerHolder
 import com.example.spotyclone.states.MusicListActions
 import com.example.spotyclone.states.PlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import okhttp3.Dispatcher
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class MusicViewModel @Inject constructor(
     application: Application,
-    repository: RoomRepository,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    roomRepository: RoomRepository
 ) : AndroidViewModel(application) {
 
     val param: String = savedStateHandle.get<String>("param") ?: "default"
@@ -43,11 +39,7 @@ class MusicViewModel @Inject constructor(
 
     private val mediaBrowserController = MediaBrowserController(appContext)
 
-    val room_songs = repository.songs.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
-        emptyList()
-    )
+
 
 
     private val controllerCallback = object : Player.Listener {
@@ -74,24 +66,20 @@ class MusicViewModel @Inject constructor(
 
             // Подключаемся к существующим объектам
 
+
             MusicControllerHolder.mediaController?.addListener(controllerCallback)
+
             _songs.value = mediaBrowserController.fetchData(param)
+
 
 
             _playerState.value = _playerState.value.copy(
                 message = "hello"
             )
-
-
-
         }
 
 
-
-
-
-
-
+        Log.d("MusicService",_songs.value.toString() + " Hererer ")
 
     }
 
@@ -107,10 +95,25 @@ class MusicViewModel @Inject constructor(
 
 
     fun playSong(index: Int) {
+
+        val parentId = param
+
+
+
+        val extras = Bundle().apply {
+            putString("PARENT_ID", parentId)
+            putInt("INDEX", index)
+        }
+
+        MusicControllerHolder.mediaController?.sendCustomCommand(
+            SessionCommand("PLAY_FROM_PARENT", Bundle.EMPTY),
+            extras
+        )
+
+
         if (_playerState.value.isPlaying && MusicControllerHolder.mediaController?.currentMediaItemIndex == index){
             onPause()
         }
-
         if(!_playerState.value.isPlaying && MusicControllerHolder.mediaController?.currentMediaItemIndex == index){
             onPlay()
         }

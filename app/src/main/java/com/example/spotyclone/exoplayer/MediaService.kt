@@ -2,6 +2,7 @@ package com.example.spotyclone.service
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
@@ -12,6 +13,9 @@ import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import com.example.spotyclone.MainActivity
 import com.example.spotyclone.exoplayer.MusicControllerHolder
 import com.example.spotyclone.data.appWrite.repository.MusicRepository
@@ -52,6 +56,7 @@ class MusicService : MediaLibraryService() {
 
     private var roomMediaItems: List<MediaItem> = emptyList()
 
+
     @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
@@ -59,7 +64,6 @@ class MusicService : MediaLibraryService() {
 
 
         createLibrarySession()
-
 
 
 
@@ -85,7 +89,7 @@ class MusicService : MediaLibraryService() {
 
 
             val room_songs = roomRepository.getAllSongsOnce()
-            Log.d("TestRoom", room_songs.toString())
+            Log.d("TestRoom", room_songs.toString() + "here")
 
 
 
@@ -103,6 +107,8 @@ class MusicService : MediaLibraryService() {
                     )
                     .build()
             }
+
+
 
 
             withContext(Dispatchers.Main) {
@@ -147,13 +153,13 @@ class MusicService : MediaLibraryService() {
 
                     when(parentId){
                         "root" ->{
-                            exoPlayer.setMediaItems(mediaItems)
+
                             return Futures.immediateFuture(
                                 LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                             )
                         }
                         "room" ->{
-                            exoPlayer.setMediaItems(roomMediaItems)
+
                             return Futures.immediateFuture(
                                 LibraryResult.ofItemList(ImmutableList.copyOf(roomMediaItems), params)
                             )
@@ -165,6 +171,52 @@ class MusicService : MediaLibraryService() {
                         }
                     }
                 }
+
+                override fun onConnect(
+                    session: MediaSession,
+                    controller: MediaSession.ControllerInfo
+                ): MediaSession.ConnectionResult {
+
+                    val base = super.onConnect(session, controller)
+
+                    val sessionCommands =
+                        base.availableSessionCommands
+                            .buildUpon()
+                            .add(SessionCommand("PLAY_FROM_PARENT", Bundle.EMPTY))
+                            .build()
+
+                    return MediaSession.ConnectionResult.accept(
+                        sessionCommands,
+                        base.availablePlayerCommands
+                    )
+                }
+
+
+                override fun onCustomCommand(
+                    session: MediaSession,
+                    controller: MediaSession.ControllerInfo,
+                    customCommand: SessionCommand,
+                    args: Bundle
+                ): ListenableFuture<SessionResult> {
+
+                    if (customCommand.customAction == "PLAY_FROM_PARENT") {
+
+                        val parentId = args.getString("PARENT_ID") ?: return Futures.immediateFuture(
+                            SessionResult(SessionError.ERROR_BAD_VALUE)
+                        )
+
+                        val index = args.getInt("INDEX", 0)
+
+                        handlePlayFromParent(parentId, index)
+
+                        return Futures.immediateFuture(
+                            SessionResult(SessionResult.RESULT_SUCCESS)
+                        )
+                    }
+
+                    return super.onCustomCommand(session, controller, customCommand, args)
+                }
+
             }
         )
             .setSessionActivity(mainIntent)
@@ -173,6 +225,30 @@ class MusicService : MediaLibraryService() {
         setMediaNotificationProvider(DefaultMediaNotificationProvider(this))
     }
 
+
+
+    private fun handlePlayFromParent(parentId: String, index: Int) {
+
+        val newList = when (parentId) {
+            "root" -> mediaItems
+            "room" -> roomMediaItems
+            else -> emptyList()
+        }
+
+        val needReset =
+            MusicControllerHolder.currentParentId != parentId ||
+                    exoPlayer.mediaItemCount == 0
+
+        if (needReset) {
+            exoPlayer.setMediaItems(newList, index, 0)
+            exoPlayer.prepare()
+            MusicControllerHolder.currentParentId = parentId
+        } else {
+            exoPlayer.seekToDefaultPosition(index)
+        }
+
+        exoPlayer.play()
+    }
 
 
 
