@@ -25,7 +25,7 @@ object AppModule {
         return Room.databaseBuilder(
             context,
             SongDataBase::class.java,
-            "room_song_db"
+            "Song_database"
         ).build()
     }
 
