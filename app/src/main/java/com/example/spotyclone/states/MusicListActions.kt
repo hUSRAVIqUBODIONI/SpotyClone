@@ -6,5 +6,6 @@ sealed interface MusicListActions {
     data object onPlay : MusicListActions
     data object onNext : MusicListActions
     data object onPrev : MusicListActions
+    data object onNavigate : MusicListActions
 
 }

@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.SessionCommand
+import androidx.navigation.NavHostController
 import com.example.spotyclone.data.db.repository.RoomRepository
 import com.example.spotyclone.exoplayer.MediaBrowserController
 import com.example.spotyclone.exoplayer.MusicControllerHolder
@@ -24,7 +25,7 @@ import javax.inject.Inject
 class MusicViewModel @Inject constructor(
     application: Application,
     savedStateHandle: SavedStateHandle,
-    roomRepository: RoomRepository
+    val navController: NavHostController
 ) : AndroidViewModel(application) {
 
     val param: String = savedStateHandle.get<String>("param") ?: "default"
@@ -90,6 +91,7 @@ class MusicViewModel @Inject constructor(
             MusicListActions.onPause ->onPause()
             MusicListActions.onPlay -> onPlay()
             MusicListActions.onPrev -> onPrev()
+            is MusicListActions.onNavigate -> navController.navigate(route = "music")
         }
     }
 
