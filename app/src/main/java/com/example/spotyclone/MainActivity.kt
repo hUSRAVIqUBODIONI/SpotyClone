@@ -20,19 +20,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.spotyclone.service.MusicService
+import com.example.spotyclone.ui.screens.MusicScreen
 import com.example.spotyclone.ui.screens.MusicScreenRoot
 import com.example.spotyclone.ui.theme.SpotyCloneTheme
 import com.example.spotyclone.ui.utils.Screens
 import com.example.spotyclone.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
+    @Inject
+    lateinit var navController: NavHostController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +46,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             SpotyCloneTheme {
-                MainScreen()
+                MainScreen(navController)
             }
         }
     }
@@ -52,12 +54,12 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun MainScreen() {
-    val navController = rememberNavController()
+fun MainScreen(navController: NavHostController) {
 
     val screens = listOf(
         Screens.AppWriteScreen,
-        Screens.LocalMusicScreen
+        Screens.LocalMusicScreen,
+
     )
 
     Scaffold(
@@ -114,6 +116,9 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
         ) {
             val vm: MusicViewModel = hiltViewModel()
             MusicScreenRoot(vm)
+        }
+        composable(route = Screens.MusicScreen.route) {
+            MusicScreen()
         }
     }
 }
