@@ -1,6 +1,9 @@
 package com.example.spotyclone.di
 
 import android.content.Context
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.ComposeNavigator
+import androidx.navigation.compose.DialogNavigator
 import androidx.room.Room
 import com.example.spotyclone.data.db.SongDataBase
 import com.example.spotyclone.data.db.dao.SongDao
@@ -39,5 +42,17 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRoomRepository(songDao: SongDao) : RoomRepository = RoomRepository(songDao)
+
+    @Provides
+    @Singleton
+    fun provideNavController(
+        @ApplicationContext context: Context
+    ) : NavHostController {
+        return NavHostController(context = context).apply {
+            navigatorProvider.addNavigator(ComposeNavigator())
+            navigatorProvider.addNavigator(DialogNavigator())
+        }
+    }
+
 
 }
