@@ -1,5 +1,6 @@
 package com.example.spotyclone
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -26,7 +27,8 @@ import com.example.spotyclone.ui.screens.MusicScreen
 import com.example.spotyclone.ui.screens.MusicScreenRoot
 import com.example.spotyclone.ui.theme.SpotyCloneTheme
 import com.example.spotyclone.ui.utils.Screens
-import com.example.spotyclone.viewmodel.MusicViewModel
+import com.example.spotyclone.ui.viewmodels.MusicViewModel
+import com.example.spotyclone.viewmodel.MusicListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -98,6 +100,7 @@ fun NavigationBottomBar(navController: NavController, items: List<Screens>) {
 }
 
 
+
 @Composable
 fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(navController, startDestination = Screens.AppWriteScreen.route, modifier = modifier) {
@@ -106,7 +109,7 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
             route = "appWrite?param={param}",
             arguments = listOf(navArgument("param") { defaultValue = "root" })
         ) {
-            val vm: MusicViewModel = hiltViewModel()
+            val vm: MusicListViewModel = hiltViewModel()
             MusicScreenRoot(vm)
         }
 
@@ -114,11 +117,12 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
             route = "local?param={param}",
             arguments = listOf(navArgument("param") { defaultValue = "room" })
         ) {
-            val vm: MusicViewModel = hiltViewModel()
+            val vm: MusicListViewModel = hiltViewModel()
             MusicScreenRoot(vm)
         }
         composable(route = Screens.MusicScreen.route) {
-            MusicScreen()
+            val vm: MusicViewModel = hiltViewModel()
+            MusicScreen(vm)
         }
     }
 }

@@ -1,49 +1,35 @@
-package com.example.spotyclone.viewmodel
+package com.example.spotyclone.ui.viewmodels
 
-import android.app.Application
-import android.os.Bundle
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.session.SessionCommand
-import androidx.navigation.NavHostController
-import com.example.spotyclone.data.db.repository.RoomRepository
-import com.example.spotyclone.exoplayer.MediaBrowserController
-import com.example.spotyclone.exoplayer.MusicControllerHolder
+import com.example.spotyclone.exoplayer.MusicControllerHolder.mediaController
 import com.example.spotyclone.states.MusicListActions
 import com.example.spotyclone.states.PlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @HiltViewModel
-class MusicViewModel @Inject constructor(
-    application: Application,
-    savedStateHandle: SavedStateHandle,
-    val navController: NavHostController
-) : AndroidViewModel(application) {
+class MusicViewModel @Inject constructor(): ViewModel() {
 
-    val param: String = savedStateHandle.get<String>("param") ?: "default"
+    private val _playerState = MutableStateFlow(PlayerState(
+        isPlaying = false,
+        currentSong = "notChoosed",
+        mediaItem = null
+    ))
+    val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
+    private val controller = mediaController
+    private val controllerCallback = object : Player.Listener{
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            _playerState.value = _playerState.value.copy(
+                isPlaying = isPlaying
+            )
+        }
 
-    private val appContext = application.applicationContext
-
-    private val _songs = MutableStateFlow<List<MediaItem>>(emptyList())
-    val songs = _songs.asStateFlow()
-
-    private val _playerState = MutableStateFlow<PlayerState>(PlayerState("Choose track",false,null))
-    val playerState = _playerState.asStateFlow()
-
-    private val mediaBrowserController = MediaBrowserController(appContext)
-
-
-
-
-    private val controllerCallback = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
             mediaItem?.let {
@@ -52,36 +38,26 @@ class MusicViewModel @Inject constructor(
                 )
             }
         }
-
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            _playerState.value = _playerState.value.copy(
-                isPlaying = isPlaying
-            )
-        }
     }
 
     init {
-        Log.d("MusicService",param + " Here ")
-        viewModelScope.launch {
-            mediaBrowserController.init()
+        controller?.addListener(controllerCallback)
+        synchronizePlayerState()
 
-            // Подключаемся к существующим объектам
+    }
 
-
-            MusicControllerHolder.mediaController?.addListener(controllerCallback)
-
-            _songs.value = mediaBrowserController.fetchData(param)
+    private fun synchronizePlayerState() {
 
 
-
-            _playerState.value = _playerState.value.copy(
-                message = "hello"
-            )
-        }
-
-
-        Log.d("MusicService",_songs.value.toString() + " Hererer ")
-
+        _playerState.value = PlayerState(
+            isPlaying = controller?.isPlaying ?: false,
+            currentSong = controller?.currentMediaItem
+                ?.mediaMetadata
+                ?.title
+                ?.toString()
+                .orEmpty(),
+            mediaItem = controller?.currentMediaItem
+        )
     }
 
     fun onEvent(actions: MusicListActions){
@@ -91,62 +67,45 @@ class MusicViewModel @Inject constructor(
             MusicListActions.onPause ->onPause()
             MusicListActions.onPlay -> onPlay()
             MusicListActions.onPrev -> onPrev()
-            is MusicListActions.onNavigate -> navController.navigate(route = "music")
+            is MusicListActions.onNavigate -> {}
         }
     }
 
 
-    fun playSong(index: Int) {
+    fun playSong(index: Int){
+        mediaController?.seekToDefaultPosition(index)
 
-        val parentId = param
-
-
-
-        val extras = Bundle().apply {
-            putString("PARENT_ID", parentId)
-            putInt("INDEX", index)
-        }
-
-        MusicControllerHolder.mediaController?.sendCustomCommand(
-            SessionCommand("PLAY_FROM_PARENT", Bundle.EMPTY),
-            extras
-        )
-
-
-        if (_playerState.value.isPlaying && MusicControllerHolder.mediaController?.currentMediaItemIndex == index){
-            onPause()
-        }
-        if(!_playerState.value.isPlaying && MusicControllerHolder.mediaController?.currentMediaItemIndex == index){
-            onPlay()
-        }
-
-        if( MusicControllerHolder.mediaController?.currentMediaItemIndex != index){
-            MusicControllerHolder.mediaController?.seekToDefaultPosition(index)
-
-            onPlay()
-        }
     }
 
     fun onPause(){
-        MusicControllerHolder.mediaController?.pause()
+        mediaController?.pause()
     }
 
     fun onPlay(){
-        MusicControllerHolder.mediaController?.play()
+        mediaController?.play()
     }
 
     fun onNext(){
-        val nextIndex = MusicControllerHolder.mediaController?.currentMediaItemIndex?.plus(1) ?: 0
-        if (nextIndex >= _songs.value.size) playSong(0) else playSong(nextIndex)
+        val nextIndex = mediaController?.currentMediaItemIndex?.plus(1) ?: 0
+        val mediaCount = mediaController?.mediaItemCount ?: 0
+        if(nextIndex >= mediaCount){
+            playSong(0)
+        }else{
+            playSong(nextIndex)
+        }
     }
 
     fun onPrev(){
-        val nextIndex = MusicControllerHolder.mediaController?.currentMediaItemIndex?.minus(1) ?: 0
-        if (nextIndex >= 0) playSong(nextIndex) else playSong(_songs.value.size-1)
+        val nextIndex = mediaController?.currentMediaItemIndex?.minus(1) ?: 0
+        val mediaCount = mediaController?.mediaItemCount ?: 0
+        if(nextIndex < 0){
+            playSong(mediaCount-1)
+        }else{
+            playSong(nextIndex)
+        }
     }
 
     override fun onCleared() {
         super.onCleared()
     }
-
 }
